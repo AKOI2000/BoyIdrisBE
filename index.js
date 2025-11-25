@@ -8,7 +8,7 @@ import postRoutes from "./routes/workRoutes.js";
 import authRoutes from "./routes/auth.js";
 import clients from "./routes/client.js";
 import experience from "./routes/experience.js";
-import { PGStore } from "connect-pg-simple";
+import connectPgSimple from "connect-pg-simple";
 import pool from "./db.js";
 
 dotenv.config();
@@ -28,7 +28,7 @@ app.use(
   })
 );
 
-const pgSession = PGStore(session);
+const pgSession = connectPgSimple(session);
 
 const sessionMiddleware = session({
   store: new pgSession({
