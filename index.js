@@ -20,7 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 // CORS
 app.use(
   cors({
-    origin: "https://boyidris.vercel.app/",
+    origin: "https://boyidris.vercel.app",
     credentials: true,
   })
 );
