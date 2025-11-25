@@ -7,9 +7,12 @@ import passport from "./auth/passport.js";
 import postRoutes from "./routes/workRoutes.js";
 import authRoutes from "./routes/auth.js";
 import clients from "./routes/client.js";
-import experience from "./routes/experience.js"
+import experience from "./routes/experience.js";
+import { PGStore } from "connect-pg-simple";
+import pool from "./db.js";
 
 dotenv.config();
+
 
 const app = express();
 
@@ -25,20 +28,27 @@ app.use(
   })
 );
 
-// Session (must be before passport middleware)
-app.use(
-  session({
-    secret: "something-super-secret",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV || "production", // true in prod
-      sameSite: "lax",
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24,
-    },
-  })
-);
+const pgSession = PGStore(session);
+
+const sessionMiddleware = session({
+  store: new pgSession({
+    pool,                 // your existing pg Pool
+    tableName: "session", // optional
+    createTableIfMissing: true, // auto-create the table
+  }),
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24, 
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax", // or 'none' if frontend is on a different domain
+    httpOnly: true,
+  },
+});
+
+app.use(sessionMiddleware);
+
 
 // Passport init
 app.use(passport.initialize());
