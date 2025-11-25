@@ -9,6 +9,7 @@ passport.use(
     {
       usernameField: "email",
       passwordField: "password",
+      session: true,
     },
     async (email, password, done) => {
       try {
@@ -35,12 +36,17 @@ passport.serializeUser((user, done) => {
 // Deserialize user from session
 passport.deserializeUser(async (id, done) => {
   try {
-    const result = await pool.query("SELECT * FROM users WHERE id=$1", [id]);
+    const result = await pool.query(
+      "SELECT id, email FROM users WHERE id=$1",
+      [id]
+    );
+
     const user = result.rows[0];
     done(null, user);
   } catch (err) {
     done(err);
   }
 });
+
 
 export default passport;

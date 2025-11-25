@@ -13,14 +13,9 @@ import pool from "./db.js";
 
 dotenv.config();
 
-
 const app = express();
 
-// Body parser
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// CORS
+// CORS FIRST
 app.use(
   cors({
     origin: "https://boyidris.vercel.app",
@@ -28,38 +23,46 @@ app.use(
   })
 );
 
+// Body parser
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+
+// Trust render proxy so secure cookies work
+app.set("trust proxy", 2);
+
 const pgSession = connectPgSimple(session);
 
 const sessionMiddleware = session({
   store: new pgSession({
-    pool,                 // your existing pg Pool
-    tableName: "session", // optional
-    createTableIfMissing: true, // auto-create the table
+    pool,
+    tableName: "session",
+    createTableIfMissing: true,
   }),
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24, 
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax", // or 'none' if frontend is on a different domain
+    maxAge: 1000 * 60 * 60 * 24,
+    sameSite: "none",
+    secure: true,
     httpOnly: true,
   },
 });
 
+
 app.use(sessionMiddleware);
 
-
-// Passport init
+// Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
 // Routes
 app.use("/", postRoutes);
 app.use("/admin", authRoutes);
-app.use("/", clients)
-app.use("/", experience)
+app.use("/", clients);
+app.use("/", experience);
 
-// Start server
+// Start
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
