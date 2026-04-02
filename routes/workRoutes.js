@@ -17,8 +17,8 @@ router.post("/work/create", upload.array("images", 15), createPost);
 router.get("/allworks", async (req, res) => {
   const result = await pool.query("SELECT * FROM posts");
   const works = result.rows;
-  res.json(works)
-})
+  res.json(works);
+});
 
 router.get("/works", async (req, res) => {
   let page = parseInt(req.query.page) || 1;
@@ -35,12 +35,11 @@ router.get("/works", async (req, res) => {
 
   if (total) {
     if (Math.ceil(total.rowCount / limit) < page) {
-      console.log("Unsuccessful");
-      res.json(
-        {message: "Hey champ, I have not done just enough work,thank you for believing in me though"}
-      );
+      res.json({
+        message:
+          "Hey champ, I have not done just enough work,thank you for believing in me though",
+      });
     } else {
-      console.log("Successful");
       res.json({
         data: posts.rows,
         pagination: {

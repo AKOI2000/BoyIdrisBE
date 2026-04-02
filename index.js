@@ -16,6 +16,13 @@ dotenv.config();
 const app = express();
 
 // CORS FIRST
+// app.use(
+//   cors({
+//     origin: "http://localhost:5173",
+//     credentials: true,
+//   })
+// );
+
 app.use(
   cors({
     origin: "https://boyidris.vercel.app",
@@ -27,11 +34,12 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
 // Trust render proxy so secure cookies work
 app.set("trust proxy", 2);
 
 const pgSession = connectPgSimple(session);
+
+const isProd = process.env.NODE_ENV === "production";
 
 const sessionMiddleware = session({
   store: new pgSession({
@@ -43,13 +51,12 @@ const sessionMiddleware = session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24,
-    sameSite: "none",
-    secure: true,
+    maxAge: 1000 * 60 * 60,
+    sameSite: isProd ? "none" : "lax",
+    secure: isProd, // ONLY true in production
     httpOnly: true,
   },
 });
-
 
 app.use(sessionMiddleware);
 
