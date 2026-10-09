@@ -25,11 +25,12 @@ export const createPost = async (req, res) => {
     });
   };
 
+  let imageUrls;
   try {
-    const imageUrls = await Promise.all(files.map(uploadBufferToCloudinary));
+    imageUrls = await Promise.all(files.map(uploadBufferToCloudinary));
   } catch (err) {
     // handle it — one or more uploads failed
-    return res.status(500).json({ message: err.message });
+    return res.status(500).json({ success: false, message: err.message });
   }
 
   const slug = slugify(title, { lower: true, strict: true });
@@ -42,7 +43,10 @@ export const createPost = async (req, res) => {
 
   const values = [title, description, tags, JSON.stringify(imageUrls), slug];
 
-  const result = await pool.query(insertQuery, values);
-
-  // return res.status(201).json({ success: true, post: result.rows[0] });
+  try {
+    const result = await pool.query(insertQuery, values);
+    return res.status(201).json({ success: true, post: result.rows[0] });
+  } catch (dbErr) {
+    return res.status(500).json({ success: false, message: dbErr.message });
+  }
 };
